@@ -39,14 +39,14 @@ mod xtransfer {
         ///
         /// The caller must be the badge admin.
         #[ink(message)]
-        pub fn renounce_ownership(&mut self, id: u32, issuer: AccountId) -> Result<()> {
-            self.esure_admin(id)?;
-            self.admin = Self::env().caller();
+        pub fn renounce_ownership(&mut self, new_owner: AccountId) -> Result<()> {
+            self.esure_admin()?;
+            self.admin = new_owner;
             Ok(())
         }
 
         /// Returns error if caller is not admin
-        fn esure_admin(&self, id: u32) -> Result<()> {
+        fn esure_admin(&self) -> Result<()> {
             let caller = self.env().caller();
             if self.admin != caller {
                 return Err(Error::BadOrigin);
