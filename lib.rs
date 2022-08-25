@@ -41,7 +41,7 @@ mod xtransfer {
         #[ink(message)]
         pub fn renounce_ownership(&mut self, id: u32, issuer: AccountId) -> Result<()> {
             self.esure_admin(id)?;
-            this.admin = Self::env().caller();
+            self.admin = Self::env().caller();
             Ok(())
         }
 
