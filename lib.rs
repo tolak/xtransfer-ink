@@ -1,14 +1,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use ink_lang as ink;
-
-#[openbrush::contract]
+#[openbrush::contract(env = PinkEnvironment)]
 mod xtransfer {
     use ink_lang::codegen::Env;
     use ink_prelude::{string::String, vec::Vec};
     use ink_storage::traits::{PackedLayout, SpreadAllocate, SpreadLayout};
     use ink_storage::Mapping;
     use scale::{Decode, Encode};
+    use pink_extension::{push_message, PinkEnvironment};
 
     #[ink(storage)]
     #[derive(SpreadAllocate)]
@@ -45,6 +44,23 @@ mod xtransfer {
             Ok(())
         }
 
+        #[ink(message)]
+        pub fn transfer_fungible(&self, asset: [u8; 32], recipient: AccountId, amount: u128) {
+            // Withdraw amount of asset from sender
+
+            // If asset reserved on FatContract, deposit amount of asset to reserve account
+
+            // Push message to blockchain
+            let message: Vec<u8>;
+            let topic: Vec<u8>;
+            // push_message(message, topic)
+        }
+
+        #[ink(message)]
+        pub fn send_xcm_onchain(&self, message: Vec<u8>, topic: Vec<u8>) {
+            push_message(message, topic)
+        }
+
         /// Returns error if caller is not admin
         fn esure_admin(&self) -> Result<()> {
             let caller = self.env().caller();
@@ -59,9 +75,8 @@ mod xtransfer {
     mod tests {
         use super::*;
         use ink_lang as ink;
-        use openbrush::traits::mock::{Addressable, SharedCallStack};
 
-        fn default_accounts() -> ink_env::test::DefaultAccounts<ink_env::DefaultEnvironment> {
+        fn default_accounts() -> ink_env::test::DefaultAccounts<PinkEnvironment> {
             ink_env::test::default_accounts::<Environment>()
         }
 
