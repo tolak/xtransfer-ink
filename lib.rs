@@ -6,14 +6,16 @@ mod xtransfer {
     use ink_prelude::{string::String, vec::Vec};
     use ink_storage::traits::{PackedLayout, SpreadAllocate, SpreadLayout};
     use ink_storage::Mapping;
-    use scale::{Decode, Encode};
     use pink_extension::{push_message, PinkEnvironment};
+    use scale::{Decode, Encode};
 
     #[ink(storage)]
     #[derive(SpreadAllocate)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub struct XTransfer {
         admin: AccountId,
+        reserve_account: AccountId,
+        pbridge_registry: Mapping<[u8; 32], ()>,
     }
 
     /// Errors that can occur upon calling this contract.
@@ -21,6 +23,8 @@ mod xtransfer {
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub enum Error {
         BadOrigin,
+        CannotDeposit,
+        InsufficientBalance,
     }
 
     /// Type alias for the contract's result type.
@@ -36,7 +40,7 @@ mod xtransfer {
 
         /// Admin renounce ownership to a specific account
         ///
-        /// The caller must be the badge admin.
+        /// The caller must be the admin.
         #[ink(message)]
         pub fn renounce_ownership(&mut self, new_owner: AccountId) -> Result<()> {
             self.esure_admin()?;
@@ -44,16 +48,51 @@ mod xtransfer {
             Ok(())
         }
 
+        /// Admin mark an asset as pbridge enalbed
+        ///
+        /// The caller must be the admin.
         #[ink(message)]
-        pub fn transfer_fungible(&self, asset: [u8; 32], recipient: AccountId, amount: u128) {
-            // Withdraw amount of asset from sender
+        pub fn enable_pbridge(&mut self, asset: [u8; 32]) -> Result<()> {
+            self.esure_admin()?;
+            self.pbridge_registry.insert(&asset, &());
+            Ok(())
+        }
 
-            // If asset reserved on FatContract, deposit amount of asset to reserve account
+        #[ink(message)]
+        pub fn transfer_fungible(
+            &self,
+            asset: [u8; 32],
+            recipient: AccountId,
+            amount: u128,
+        ) -> Result<()> {
+            // Check if asset has enabled pbridge
+            if self.pbridge_registry.contains(&asset) {
+                return Err(Error::CannotDeposit);
+            }
 
-            // Push message to blockchain
-            let message: Vec<u8>;
-            let topic: Vec<u8>;
+            // Check if caller has sufficient balance
+
+            // 1) Withdraw amount of asset from sender
+
+            // 2) If asset reserved on FatContract, deposit amount of asset to reserve account
+
+            // 3) Push message to blockchain
+            // let message: Vec<u8> = PBridgeReport::FungibleTransfer(
+            //     asset.into(),
+            //     MultiLocation::new(
+            //         0,
+            //         X1(Junction::AccountId32 {
+            //             network: NetworkId::Any,
+            //             id: recipient.into(),
+            //         }),
+            //     )
+            //     .encode(),
+            //     amount,
+            // ).encode();
+            let topic: Vec<u8> = b"phala/contract/pbridge/report".to_vec();
             // push_message(message, topic)
+
+            Ok(())
         }
 
         #[ink(message)]
