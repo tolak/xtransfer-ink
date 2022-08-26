@@ -16,6 +16,7 @@ mod xtransfer {
         admin: AccountId,
         reserve_account: AccountId,
         pbridge_registry: Mapping<[u8; 32], ()>,
+        local_reserved: Mapping<[u8; 32], ()>,
     }
 
     /// Errors that can occur upon calling this contract.
@@ -52,9 +53,12 @@ mod xtransfer {
         ///
         /// The caller must be the admin.
         #[ink(message)]
-        pub fn enable_pbridge(&mut self, asset: [u8; 32]) -> Result<()> {
+        pub fn enable_pbridge(&mut self, asset: [u8; 32], reserved: bool) -> Result<()> {
             self.esure_admin()?;
             self.pbridge_registry.insert(&asset, &());
+            if reserved {
+                self.local_reserved.insert(&asset, &());
+            }
             Ok(())
         }
 
