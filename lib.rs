@@ -15,8 +15,8 @@ mod xtransfer {
     pub struct XTransfer {
         admin: AccountId,
         reserve_account: AccountId,
-        pbridge_registry: Mapping<[u8; 32], ()>,
-        local_reserved: Mapping<[u8; 32], ()>,
+        pbridge_registry: Mapping<AccountId, ()>,
+        local_reserved: Mapping<AccountId, ()>,
     }
 
     /// Errors that can occur upon calling this contract.
@@ -53,7 +53,7 @@ mod xtransfer {
         ///
         /// The caller must be the admin.
         #[ink(message)]
-        pub fn enable_pbridge(&mut self, asset: [u8; 32], reserved: bool) -> Result<()> {
+        pub fn enable_pbridge(&mut self, asset: AccountId, reserved: bool) -> Result<()> {
             self.esure_admin()?;
             self.pbridge_registry.insert(&asset, &());
             if reserved {
@@ -65,7 +65,7 @@ mod xtransfer {
         #[ink(message)]
         pub fn transfer_fungible(
             &self,
-            asset: [u8; 32],
+            asset: AccountId,
             recipient: AccountId,
             amount: u128,
         ) -> Result<()> {
