@@ -13,9 +13,20 @@ mod xtransfer {
     #[derive(SpreadAllocate)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub struct XTransfer {
+        /// Authority account of the contract, reponsible for asset registration and
+        /// other permissioned behaviors.
         admin: AccountId,
-        reserve_account: AccountId,
+        /// Registry of assets, an registered asset will be insert into this map, and
+        /// be removed when unregistered. Only registered assets can send message onchain,
+        /// including transfering fungible tokens or send XCM messages. Note that assets
+        /// which like to enable PBridge need to registry on both FatContract and onchain.
         pbridge_registry: Mapping<AccountId, ()>,
+        /// An asset marked as local reserved when register would be treat as native asset
+        /// from FatConntract, that means if user send asset onchain, asset will be withdrawn
+        /// from sender account, then deposit to current contract address. When user send back
+        /// assct from onchain, asset will be withdrawn from current contract account and then
+        /// deposit into recipient account. If asset balance of current contract account is
+        /// insuffcient, transfering will failed.
         local_reserved: Mapping<AccountId, ()>,
     }
 
